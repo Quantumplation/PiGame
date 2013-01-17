@@ -17,3 +17,15 @@ type Deck = [Card]
 
 startingDeck :: Deck
 startingDeck = map (uncurry Card) [(n, s) | n <- [1..13], s <- [Heart, Diamond, Club, Spade]]
+
+emptyDeck :: Deck
+emptyDeck = []
+
+shuffle :: (RandomGen g) => Deck -> g -> (Deck, g)
+shuffle deck g = shuffle' deck g emptyDeck
+	where 
+		shuffle' [] gen acc = (acc, gen)
+		shuffle' l gen acc = shuffle' (lead++xs) gen' (x:acc)
+			where
+				(k, gen') = next gen
+				(lead, x:xs) = splitAt (k `mod` length l) l
