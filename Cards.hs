@@ -1,3 +1,5 @@
+module Cards where
+
 import System.Random
 
 data Suite = Heart | Diamond | Club | Spade deriving (Read, Show)
@@ -13,16 +15,16 @@ instance Show Card where
 		| n == 13 = "King of " ++ show s ++ "s"
 		| otherwise = "Invalid Card"
 
-type Deck = [Card]
+type Pile = [Card]
 
-startingDeck :: Deck
-startingDeck = map (uncurry Card) [(n, s) | n <- [1..13], s <- [Heart, Diamond, Club, Spade]]
+startingDeck :: Pile
+startingDeck = map (uncurry Card) [(n, s) | n <- [1..3], s <- [Heart, Diamond, Club, Spade]]
 
-emptyDeck :: Deck
+emptyDeck :: Pile
 emptyDeck = []
 
-shuffle :: (RandomGen g) => Deck -> g -> (Deck, g)
-shuffle deck g = shuffle' deck g emptyDeck
+shuffle :: (RandomGen g) => Pile -> g -> Pile
+shuffle deck g = fst (shuffle' deck g emptyDeck)
 	where 
 		shuffle' [] gen acc = (acc, gen)
 		shuffle' l gen acc = shuffle' (lead++xs) gen' (x:acc)
