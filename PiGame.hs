@@ -2,7 +2,7 @@ import Cards
 import System.Random
 import Data.List
 
-data Player = PlayerA | PlayerB deriving Show
+data Player = PlayerA | PlayerB deriving (Eq, Show)
 data PlayerState = PS { 
 	player			:: Player, 
 	hand  			:: Pile, 
@@ -13,7 +13,17 @@ data Game = Start {
 	playerA      	:: PlayerState,
 	playerB      	:: PlayerState,
 	unpicked     	:: [Pile]	
-} deriving Show
+} | InProgress {
+	playingPlayer	:: Player,
+	playerA      	:: PlayerState,
+	playerB      	:: PlayerState,
+	field        	:: Pile
+}
+ deriving Show
+
+flop :: Player -> Player
+flop PlayerA = PlayerB
+flop PlayerB = PlayerA
 
 top :: Pile -> Card
 top = head
@@ -33,5 +43,21 @@ splitN p n g = splitN' p (splits (length p - 1) g)
 defaultStart :: (RandomGen g) => Pile -> Int -> g -> Game
 defaultStart deck count gen = Start PlayerA pA pB (splitN deck count gen)
 	where
-		pA = PS PlayerA [] [[]]
-		pB = PS PlayerB [] [[]]
+		pA = PS PlayerA [] []
+		pB = PS PlayerB [] []
+
+pick :: Game -> Int -> Game
+pick (Start _ pA pB []) n = InProgress PlayerB pA pB []
+pick (Start player pA pB unpicked) n = 
+	case unpicked' of
+		[] -> InProgress PlayerB pA' pB' []
+		_  -> Start (flop player) pA' pB' unpicked'
+	where 
+		pA' = case player of
+			PlayerA -> pA{piles = p : piles pA}
+			PlayerB -> pA
+		pB' = case player of
+			PlayerA -> pB
+			PlayerB -> pB{piles = p : piles pB}
+		p = unpicked !! n
+		unpicked' = let (ys, zs) = splitAt n unpicked in ys ++ tail zs
