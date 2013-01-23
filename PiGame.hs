@@ -47,17 +47,15 @@ defaultStart deck count gen = Start PlayerA pA pB (splitN deck count gen)
 		pB = PS PlayerB [] []
 
 pick :: Game -> Int -> Game
-pick (Start _ pA pB []) n = InProgress PlayerB pA pB []
-pick (Start player pA pB unpicked) n = 
+pick (Start _ pA pB []) _ = InProgress PlayerB pA pB []
+pick (Start p pA pB u) n = 
 	case unpicked' of
 		[] -> InProgress PlayerB pA' pB' []
-		_  -> Start (flop player) pA' pB' unpicked'
+		_  -> Start (flop p) pA' pB' unpicked'
 	where 
-		pA' = case player of
-			PlayerA -> pA{piles = p : piles pA}
-			PlayerB -> pA
-		pB' = case player of
-			PlayerA -> pB
-			PlayerB -> pB{piles = p : piles pB}
-		p = unpicked !! n
-		unpicked' = let (ys, zs) = splitAt n unpicked in ys ++ tail zs
+		(pA', pB') = case p of
+			PlayerA -> (pA{piles = pile : piles pA}, pB)
+			PlayerB -> (pA, pB{piles = pile : piles pB})
+		pile = u !! n
+		unpicked' = let (ys, zs) = splitAt n u in ys ++ tail zs
+pick InProgress{} _ = undefined
